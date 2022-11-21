@@ -9,6 +9,7 @@ import javax.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
@@ -31,6 +32,8 @@ import com.BlogApp.payloads.UserDto;
 import com.BlogApp.repo.UserRepo;
 import com.BlogApp.service.UserService;
 
+import springfox.documentation.swagger2.mappers.ModelMapper;
+
 
 
 
@@ -52,10 +55,11 @@ public class AuthContoller {
 	private UserService userService;
 	
 	
+    @Autowired
+	private UserRepo userRepo;
+    
 		@Autowired
-		private UserRepo userRepo;
-//		@Autowired
-//		private ModelMapper mapper;
+		private ModelMapper mapper;
 
 	@PostMapping("/login")
 	public ResponseEntity<JwtAuthResponse> Login(@RequestBody JwtAuthRequest request) throws Exception {
@@ -87,18 +91,19 @@ public class AuthContoller {
 
 
 
-	@PostMapping("/register")
-	public ResponseEntity<UserDto> registerUser(@RequestBody UserDto userDto) {
-		UserDto registeredUser = this.userService.registerUser(userDto);
+	@PostMapping("/SignUpAsUser")
+	public ResponseEntity<UserDto> SignUpAsUser(@RequestBody UserDto userDto) {
+		UserDto registeredUser = this.userService.registerNewUser(userDto);
+		return new ResponseEntity<UserDto>(registeredUser, HttpStatus.CREATED);
+	}
+	
+	@PreAuthorize("hasRole('ROLE_ADMIN')")
+	@PostMapping("/registerNewAdmin")
+	public ResponseEntity<UserDto> registerNewAdmin(@RequestBody UserDto userDto) {
+		UserDto registeredUser = this.userService.registerNewAdmin(userDto);
 		return new ResponseEntity<UserDto>(registeredUser, HttpStatus.CREATED);
 	}
 
-	
 
-//	@GetMapping("/current-user/")
-//	public ResponseEntity<UserDto> getUser(Principal principal) {
-//		User user = this.userRepo.findByEmail(principal.getName()).get();
-//		return new ResponseEntity<UserDto>(this.mapper.map(user, UserDto.class), HttpStatus.OK);
-//	}
 
 }

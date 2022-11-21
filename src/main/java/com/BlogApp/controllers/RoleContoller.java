@@ -7,6 +7,7 @@ import javax.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -34,19 +35,15 @@ public class RoleContoller {
 		return new ResponseEntity<>(role,HttpStatus.CREATED);
 	}
 	
+	@PreAuthorize("hasRole('ROLE_ADMIN')")
 	@PostMapping("/addRoleToUser/{roleId}/{userId}")
-	public ResponseEntity<Role> addRoleToUser(@Valid @PathVariable Integer roleId, @PathVariable Integer userId)
+	public ResponseEntity<User> addRoleToUser(@Valid @PathVariable Integer roleId, @PathVariable Integer userId)
 	{
-		Role role=roleService.addRoleToUser(userId, roleId);
-		return new ResponseEntity<Role>(role,HttpStatus.CREATED);
+		User user=roleService.addRoleToUser(userId, roleId);
+		return new ResponseEntity<User>(user,HttpStatus.CREATED);
 	}
 	
-	@GetMapping("/getUsers/{roleId}")
-	public ResponseEntity<List<User>> viewUsersInRole(@Valid @PathVariable Integer roleId)
-	{
-		List<User> list=roleService.viewUsersInRole(roleId);
-		return new ResponseEntity<List<User>>(list,HttpStatus.CREATED);
-	}
+
 	
 
 }

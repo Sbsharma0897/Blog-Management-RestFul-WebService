@@ -1,6 +1,7 @@
 package com.BlogApp.controllers;
 
 import java.util.List;
+import java.util.Set;
 
 import javax.validation.Valid;
 
@@ -29,24 +30,23 @@ public class UserController {
 	@Autowired
 	private UserService userService;
 
-	@PostMapping("/create")
-	public ResponseEntity<UserDto> createUser(@Valid @RequestBody UserDto userDto)
-	{
-		UserDto userDto2=userService.createUser(userDto);
-		return new ResponseEntity<>(userDto2,HttpStatus.CREATED);
-	}
+    
 	@PutMapping("/update/{userId}")
-	public ResponseEntity<UserDto> updateUser( @Valid @RequestBody UserDto userDto,@PathVariable Integer userId) throws ResourceNotFoundException
+	public ResponseEntity<UserDto> updateUser( @Valid @RequestBody UserDto userDto) throws ResourceNotFoundException
 	{
-		UserDto userDto2=userService.updateUser(userDto, userId);
+		UserDto userDto2=userService.updateUser(userDto);
 		return new ResponseEntity<>(userDto2,HttpStatus.OK);
 	}
+	
+	@PreAuthorize("hasRole('ROLE_ADMIN')")
 	@GetMapping("/{userId}")
 	public ResponseEntity<UserDto> getUserById(@Valid @PathVariable Integer userId) throws ResourceNotFoundException
 	{
 		UserDto userDto2=userService.getUserById(userId);
 		return new ResponseEntity<>(userDto2,HttpStatus.OK);
 	}
+	
+	@PreAuthorize("hasRole('ROLE_ADMIN')")
 	@GetMapping("/")
 	public ResponseEntity<List<UserDto>> getAllUsers()
 	{
@@ -54,7 +54,7 @@ public class UserController {
 		return new ResponseEntity<>(list,HttpStatus.OK);
 	}
 	
-	@PreAuthorize("hasRole('normal')")
+	@PreAuthorize("hasRole('ROLE_ADMIN')")
 	@DeleteMapping("/delete/{userId}")
 	public ResponseEntity<UserDto> deleteUser(@Valid @PathVariable Integer userId) throws ResourceNotFoundException
 	{
@@ -62,11 +62,12 @@ public class UserController {
 		return new ResponseEntity<>(userDto2,HttpStatus.OK);
 	}
 	
+	@PreAuthorize("hasRole('ROLE_ADMIN')")
 	@GetMapping("/getRolesOfUser/{userId}")
-	public ResponseEntity<List<Role>> getRolesOfUser(@Valid @PathVariable Integer userId)
+	public ResponseEntity<Set<Role>> getRolesOfUser(@Valid @PathVariable Integer userId)
 	{
-		List<Role> list=userService.getRolesOfUserById(userId);
-		return new ResponseEntity<List<Role>>(list,HttpStatus.OK);
+		Set<Role> list=userService.getRolesOfUserById(userId);
+		return new ResponseEntity<Set<Role>>(list,HttpStatus.OK);
 	}
 
 }

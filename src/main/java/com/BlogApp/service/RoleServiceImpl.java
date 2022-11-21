@@ -36,9 +36,8 @@ public class RoleServiceImpl implements RoleService{
 	}
 
 	@Override
-	public Role addRoleToUser(Integer userId, Integer roleId) {
+	public User addRoleToUser(Integer userId, Integer roleId) {
 		
-		System.out.println("sandeep");
 		
 		Optional<User> optUser=userRepo.findById(userId);
 
@@ -52,32 +51,15 @@ public class RoleServiceImpl implements RoleService{
 		{
 			throw new ResourceNotFoundException("Role","Id", roleId);
 		}
-		System.out.println("befff");
+		
 		Role role=optRole.get();
 		User user=optUser.get();
 		
-		role.getUsers().add(user);
-//		user.getRoles().add(role);
-//		
-//		System.out.println("sdsd");
-//		System.out.println(user);
-//		userRepo.save(user);
-//		
-		return roleRepo.save(role);
+		user.getRoles().add(role);
+	
+		return userRepo.save(user);
 	}
 
-	@Override
-	public List<User> viewUsersInRole(Integer roleId) {
-		
-		Optional<Role> optRole=roleRepo.findById(roleId);
 
-		if(!optRole.isPresent())
-		{
-			throw new ResourceNotFoundException("Role","Id", roleId);
-		}
-		
-		return optRole.get().getUsers();
-		
-	}
 
 }

@@ -2,9 +2,12 @@ package com.BlogApp.service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -26,24 +29,25 @@ public class UserServiceImpl implements UserService{
 	
 	@Autowired
 	private PasswordEncoder passwordEncoder;
-
-	@Override
-	public UserDto createUser(UserDto user) {
-
-		return this.registerUser(user);
-
+	
+	public User getCurrentUser()
+	{
+		UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication()
+                .getPrincipal();
+	
+		String username = userDetails.getUsername();
+		Optional<User> optUser=userRepo.findByEmail(username);
+		
+		return optUser.get();
 	}
 
+
+
 	@Override
-	public UserDto updateUser(UserDto user, Integer userId) throws ResourceNotFoundException{
+	public UserDto updateUser(UserDto user) throws ResourceNotFoundException{
 
-		Optional<User> optional=userRepo.findById(userId);
-		if(!optional.isPresent())
-		{
-			throw new ResourceNotFoundException("User","Id", userId);
-		}
+		User userGot=getCurrentUser();
 
-		 User userGot=optional.get();
 		 userGot.setAbout(user.getAbout());
 		 userGot.setEmail(user.getEmail());
 		 userGot.setName(user.getName());
@@ -79,6 +83,7 @@ public class UserServiceImpl implements UserService{
 
 	@Override
 	public UserDto deleteUser(Integer userId) {
+		
 
 		Optional<User> optional=userRepo.findById(userId);
 		if(!optional.isPresent())
@@ -115,7 +120,7 @@ public class UserServiceImpl implements UserService{
 	}
 
 	@Override
-	public UserDto registerUser(UserDto userDto) {
+	public UserDto registerNewUser(UserDto userDto) {
 		
 	    User user=userDtotoUser(userDto);
 	    
@@ -131,28 +136,39 @@ public class UserServiceImpl implements UserService{
 	    Role role=roleRepo.findById(2).get();
 	    
 	    user.getRoles().add(role);
-	    System.out.println(role.getUsers().size());
-	    
-	    role.getUsers().add(user);
-	    System.out.println(role.getUsers().size());
-	    
 	    
 	    User newUser=userRepo.save(user);
-	    System.out.println(newUser.getRoles().size());
+	   
+	     return userToUserDto(user);
 	    
+	}
+	@Override
+	public UserDto registerNewAdmin(UserDto userDto) {
+		
+	    User user=userDtotoUser(userDto);
 	    
-	    Optional<Role> newRole=roleRepo.findById(role.getId());
+	    Optional<User> optional=userRepo.findByEmail(user.getEmail());
+	    if(optional.isPresent())
+	    {
+	    	throw new ResourceNotFoundException("User", "Id", optional.get().getId());
+	    }
 	    
-	    System.out.println(newRole.get().getUsers().size());
+	    user.setPassword(passwordEncoder.encode(user.getPassword()));
 	    
+	   
+	    Role role=roleRepo.findById(1).get();
 	    
-
+	    user.getRoles().add(role);
+	    
+	    User newUser=userRepo.save(user);
+	    
+	   
 	     return userToUserDto(user);
 	    
 	}
 
 	@Override
-	public List<Role> getRolesOfUserById(Integer userId) {
+	public Set<Role> getRolesOfUserById(Integer userId) {
 		
 		    Optional<User> optional=userRepo.findById(userId);
 		    if(!optional.isPresent())

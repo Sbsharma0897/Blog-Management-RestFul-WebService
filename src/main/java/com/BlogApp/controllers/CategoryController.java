@@ -8,6 +8,7 @@ import javax.websocket.server.PathParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -28,6 +29,7 @@ public class CategoryController {
 	@Autowired
 	private CategoryService categoryService;
 
+	@PreAuthorize("hasRole('ROLE_ADMIN')")
 	@PostMapping("/create")
 	public ResponseEntity<Category> createCategory(@Valid @RequestBody CategoryDto categoryDto)
 	{
@@ -35,13 +37,14 @@ public class CategoryController {
 		return new ResponseEntity<Category>(category2,HttpStatus.CREATED);
 	}
 	
+	@PreAuthorize("hasRole('ROLE_ADMIN')")
 	@PutMapping("/update")
 	public ResponseEntity<Category> updateCategory(@Valid @RequestBody CategoryDto categoryDto,@RequestParam Integer categoryId)
 	{
 		Category category2=categoryService.updateCategory(categoryDto, categoryId);
 		return new ResponseEntity<Category>(category2,HttpStatus.OK);
 	}
-	
+	@PreAuthorize("hasRole('ROLE_ADMIN')")
 	@DeleteMapping("/delete")
 	public ResponseEntity<Category> deleteCategory(@Valid @RequestParam Integer categoryId)
 	{

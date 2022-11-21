@@ -1,6 +1,8 @@
 package com.BlogApp.model;
 
+import java.io.Serializable;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.CascadeType;
@@ -37,16 +39,20 @@ public class Post {
 	@CreatedDate
 	private LocalDate date_added;
 
-	@ManyToOne(fetch = FetchType.EAGER)
+	@ManyToOne(fetch = FetchType.EAGER,cascade = CascadeType.ALL)
 	@JsonIgnore
     private  Category category;
 
-	@ManyToOne(fetch = FetchType.EAGER)
+	@ManyToOne(fetch = FetchType.EAGER,cascade = CascadeType.ALL)
 	private User user;
 
 	@OneToMany(mappedBy = "post",cascade = CascadeType.ALL,fetch = FetchType.EAGER)
 	@JsonIgnore
-	private List<Comment> comments;
+	private List<Comment> comments=new ArrayList<>();
+	
+	@OneToMany(cascade = CascadeType.ALL,mappedBy = "post")
+	@JsonIgnore
+	private List<Reaction> reactions=new ArrayList<>();
 
 
 

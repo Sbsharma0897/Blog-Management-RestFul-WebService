@@ -26,14 +26,15 @@ public class CommentController {
 	@Autowired
 	private CommentService commentService;
 
+	
 	@PostMapping("/create/{userId}/{postId}")
-	public ResponseEntity<Comment> createComment(@PathVariable Integer userId,
-			@PathVariable Integer postId,@RequestBody CommentDto commentDto)
+	public ResponseEntity<Comment> createComment(@Valid @PathVariable Integer postId,@RequestBody CommentDto commentDto)
 	{
-		Comment comment=commentService.addComment(commentDto, userId, postId);
+		Comment comment=commentService.addComment(commentDto, postId);
 		return new ResponseEntity<>(comment,HttpStatus.CREATED);
 	}
 
+	
 	@DeleteMapping("/delete/{commentId}")
 	public ResponseEntity<Comment> deleteCommentById(@PathVariable Integer commentId)
 	{

@@ -10,7 +10,6 @@ public interface RoleService {
 
 	Role addRole(RoleDto roleDto);
 	
-	Role addRoleToUser(Integer userId, Integer roleId);
+	User addRoleToUser(Integer userId, Integer roleId);
 	
-	List<User> viewUsersInRole(Integer roleId);
 }

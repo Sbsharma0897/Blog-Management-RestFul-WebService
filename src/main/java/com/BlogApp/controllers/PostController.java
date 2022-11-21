@@ -7,6 +7,7 @@ import javax.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -30,9 +31,9 @@ public class PostController {
 	private PostService postService;
 
 	@PostMapping("/create/{userId}/{categoryId}")
-	public ResponseEntity<Post> createPost(@Valid @RequestBody PostDto postDto,@PathVariable Integer userId,@PathVariable Integer categoryId)
+	public ResponseEntity<Post> createPost(@Valid @RequestBody PostDto postDto,@PathVariable Integer categoryId)
 	{
-		Post post =postService.createPost(postDto, categoryId, userId);
+		Post post =postService.createPost(postDto, categoryId);
 		return new ResponseEntity<>(post,HttpStatus.CREATED);
 	}
 	@GetMapping("/category/{categoryId}")
@@ -65,6 +66,7 @@ public class PostController {
 		List<Post> list=postService.getPostByUserId(userId);
 		return new ResponseEntity<>(list,HttpStatus.CREATED);
 	}
+//	@PreAuthorize("hasRole('ROLE_ADMIN')")
 	@GetMapping("/")
 	public ResponseEntity<List<Post>> getAllPost()
 	{

@@ -7,6 +7,8 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import com.BlogApp.Exceptions.ResourceNotFoundException;
@@ -28,19 +30,25 @@ public class PostServiceImpl implements PostService{
 	private UserRepo userRepo;
 	@Autowired
 	private CategoryRepo categoryRepo;
+	
+	public User getCurrentUser()
+	{
+		UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication()
+                .getPrincipal();
+	
+		String username = userDetails.getUsername();
+		Optional<User> optUser=userRepo.findByEmail(username);
+		
+		return optUser.get();
+	}
 
 
 	@Override
-	public Post createPost(PostDto postDto, Integer categoryId, Integer userId) {
+	public Post createPost(PostDto postDto, Integer categoryId) {
+		
+		User user=getCurrentUser();	    
+        Optional<Category> optCategory=categoryRepo.findById(categoryId);
 
-		Optional<User> optUser=userRepo.findById(userId);
-
-		Optional<Category> optCategory=categoryRepo.findById(categoryId);
-
-		if(!optUser.isPresent())
-		{
-			throw new ResourceNotFoundException("User","Id", userId);
-		}
 		if(!optCategory.isPresent())
 		{
 			throw new ResourceNotFoundException("Category","Id", categoryId);
@@ -48,28 +56,33 @@ public class PostServiceImpl implements PostService{
 
 		Post post =new Post();
 		post.setCategory(optCategory.get());
-		post.setUser(optUser.get());
+		post.setUser(user);
 		post.setContent(postDto.getContent());
 		post.setDate_added(LocalDate.now());
 		post.setTitle(postDto.getTitle());
 
 		return postRepo.save(post);
 
-
-
 	}
-
 
 	@Override
 	public Post updatePost(PostDto postDto, Integer postId) {
-
+		
+		User user=getCurrentUser();
+		List<Post> list=user.getPosts();
+		
 		Optional<Post> optional=postRepo.findById(postId);
 		if(!optional.isPresent())
 		{
 			throw new ResourceNotFoundException("Post", "Id", postId);
 		}
 
+		
 		Post post=optional.get();
+		if(!list.contains(post))
+		{
+			throw new ResourceNotFoundException("Post", "Id", postId);
+		}
 
 		post.setContent(postDto.getContent());
 		post.setTitle(postDto.getTitle());
@@ -78,6 +91,9 @@ public class PostServiceImpl implements PostService{
 	}
 	@Override
 	public Post updateCategoryOfPost(Integer postId, Integer categoryId) {
+		
+		User user=getCurrentUser();
+		List<Post> list=user.getPosts();
 
 		Optional<Post> optional1=postRepo.findById(postId);
 		if(!optional1.isPresent())
@@ -91,6 +107,11 @@ public class PostServiceImpl implements PostService{
 		}
 
 		Post post=optional1.get();
+		
+		if(!list.contains(post))
+		{
+			throw new ResourceNotFoundException("Post", "Id", postId);
+		}
 		Category category=optional2.get();
 
 		post.setCategory(category);
@@ -100,15 +121,44 @@ public class PostServiceImpl implements PostService{
 
 	@Override
 	public Post deletePost(Integer postId) {
+		
+		User user=getCurrentUser();
+		List<Post> list=user.getPosts();
+		
 
 		Optional<Post> optional=postRepo.findById(postId);
 		if(!optional.isPresent())
 		{
 			throw new ResourceNotFoundException("Post", "Id", postId);
 		}
+		
 
+		Optional<Post> AdminOpt=postRepo.findById(1);
+		Post admin=AdminOpt.get();
+		
 		Post post=optional.get();
-		postRepo.delete(post);
+		if(user.getRoles().contains(admin))
+		{
+			
+			user.getPosts().remove(post);
+			userRepo.save(user);
+			postRepo.delete(post);
+			
+			
+		}
+		else
+		{
+			if(!list.contains(post))
+			{
+				throw new ResourceNotFoundException("Post", "Id", postId);
+			}
+			
+			user.getPosts().remove(post);
+			userRepo.save(user);
+			postRepo.delete(post);
+			
+		}
+		
 
 		return post;
 	}

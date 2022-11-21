@@ -1,5 +1,6 @@
 package com.BlogApp.model;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -14,7 +15,10 @@ import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
+import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.validation.constraints.Email;
 
@@ -31,21 +35,19 @@ import lombok.Setter;
 
 @Setter
 @Getter
-@NoArgsConstructor
 @Entity
-
 public class User implements UserDetails{
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	private Integer id;
-	@Column(nullable = false,length=100)
+	@Column(nullable = false,length=100,unique = true)
 	private String name;
 	@Email(message="invalid email id")
 	private String email;
 	private String password;
 	private String about;
-
+   
 	@OneToMany(mappedBy = "user",cascade = CascadeType.ALL)
 	@JsonIgnore
 	private List<Post> posts=new ArrayList<>();
@@ -54,9 +56,14 @@ public class User implements UserDetails{
 	@JsonIgnore
 	private List<Comment> comments=new ArrayList<>();
 
-	@ManyToMany(cascade = CascadeType.ALL,mappedBy = "users",fetch = FetchType.LAZY)
-	@JsonIgnore
-	private List<Role> roles=new ArrayList<>();
+	@ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+	@JoinTable(name = "user_role", joinColumns = @JoinColumn(name="user",referencedColumnName = "id"),
+			inverseJoinColumns  = @JoinColumn(name="role",referencedColumnName = "id"))
+	private Set<Role> roles = new HashSet<>();
+	
+	
+	
+	
 
 	@Override
 	public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -93,6 +100,10 @@ public class User implements UserDetails{
 	public boolean isEnabled() {
 
 		return true;
+	}
+
+	public User() {
+		super();
 	}
 
 

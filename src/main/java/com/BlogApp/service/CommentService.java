@@ -7,7 +7,7 @@ import com.BlogApp.payloads.CommentDto;
 
 public interface CommentService {
 
-	Comment addComment(CommentDto commentDto,Integer userId,Integer postId);
+	Comment addComment(CommentDto commentDto,Integer postId);
 
 	Comment deleteComment(Integer commentId);
 

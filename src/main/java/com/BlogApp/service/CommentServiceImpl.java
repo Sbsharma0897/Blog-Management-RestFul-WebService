@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import com.BlogApp.Exceptions.ResourceNotFoundException;
@@ -27,17 +29,25 @@ public class CommentServiceImpl implements CommentService{
 	private CategoryRepo categoryRepo;
 	@Autowired
 	private CommentRepo commentRepo;
-	@Override
-	public Comment addComment(CommentDto commentDto, Integer userId, Integer postId) {
+	
+	public User getCurrentUser()
+	{
+		UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication()
+                .getPrincipal();
+	
+		String username = userDetails.getUsername();
+		Optional<User> optUser=userRepo.findByEmail(username);
+		
+		return optUser.get();
+	}
 
-        Optional<User> optUser=userRepo.findById(userId);
+	@Override
+	public Comment addComment(CommentDto commentDto,Integer postId) {
+
+        User user =getCurrentUser();
 
 		Optional<Post> optPost=postRepo.findById(postId);
 
-		if(!optUser.isPresent())
-		{
-			throw new ResourceNotFoundException("User","Id", userId);
-		}
 		if(!optPost.isPresent())
 		{
 			throw new ResourceNotFoundException("Category","Id", postId);
@@ -46,12 +56,15 @@ public class CommentServiceImpl implements CommentService{
 		Comment comment=new Comment();
 		comment.setContent(commentDto.getContent());
 		comment.setPost(optPost.get());
-		comment.setUser(optUser.get());
-
+		comment.setUser(user);
+		
 		return commentRepo.save(comment);
+		
 	}
 	@Override
 	public Comment deleteComment(Integer commentId) {
+		
+		    User user =getCurrentUser();
 
 		    Optional<Comment> opt=commentRepo.findById(commentId);
 
@@ -61,6 +74,10 @@ public class CommentServiceImpl implements CommentService{
 			}
 
 			Comment comment=opt.get();
+			if(comment.getUser()!=user)
+			{
+				throw new ResourceNotFoundException("User","Id", user.getId());
+			}
 			
 			Post post=comment.getPost();
 			List<Comment> list=post.getComments();
@@ -73,6 +90,8 @@ public class CommentServiceImpl implements CommentService{
 	}
 	@Override
 	public Comment updateComment(CommentDto commentDto, Integer commentId) {
+		
+		User user =getCurrentUser();
 
 		Optional<Comment> opt=commentRepo.findById(commentId);
 
@@ -82,7 +101,14 @@ public class CommentServiceImpl implements CommentService{
 		}
 
 		Comment comment=opt.get();
+		
+		if(comment.getUser()!=user)
+		{
+			throw new ResourceNotFoundException("User","Id", user.getId());
+		}
+		
 		comment.setContent(commentDto.getContent());
+		
 
 		return commentRepo.save(comment);
 
@@ -90,14 +116,14 @@ public class CommentServiceImpl implements CommentService{
 	@Override
 	public List<Comment> findByPostId(Integer postId) {
 		
-//		Optional<Post> opt=commentRepo.findById(commentId);
-//
-//		if(!opt.isPresent())
-//		{
-//			throw new ResourceNotFoundException("Comment","Id", commentId);
-//		}
-//		return null;
-		return commentRepo.findByPostId(postId);
+
+		Optional<Post> opt=postRepo.findById(postId);
+
+		if(!opt.isPresent())
+		{
+			throw new ResourceNotFoundException("Post","Id", postId);
+		}
+		return opt.get().getComments();
 	}
 
 
