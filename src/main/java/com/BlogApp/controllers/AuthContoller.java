@@ -7,6 +7,7 @@ import javax.validation.Valid;
 
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.neo4j.Neo4jProperties.Authentication;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -41,7 +42,8 @@ import springfox.documentation.swagger2.mappers.ModelMapper;
 @RequestMapping("/api/v1/auth")
 public class AuthContoller {
 	
-
+ 
+	
 	@Autowired
 	private JwtTokenHelper jwtTokenHelper;
 
