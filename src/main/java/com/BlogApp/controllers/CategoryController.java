@@ -1,5 +1,11 @@
 package com.BlogApp.controllers;
 
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.util.List;
 
 import javax.validation.Valid;
@@ -31,8 +37,9 @@ public class CategoryController {
 
 	@PreAuthorize("hasRole('ROLE_ADMIN')")
 	@PostMapping("/create")
-	public ResponseEntity<Category> createCategory(@Valid @RequestBody CategoryDto categoryDto)
+	public ResponseEntity<Category> createCategory(@Valid @RequestBody CategoryDto categoryDto) throws URISyntaxException, IOException, InterruptedException
 	{
+		
 		Category category2=categoryService.createCategory(categoryDto);
 		return new ResponseEntity<Category>(category2,HttpStatus.CREATED);
 	}
